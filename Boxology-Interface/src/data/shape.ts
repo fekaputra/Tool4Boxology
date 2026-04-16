@@ -95,15 +95,6 @@ export const shapeTypesTree: ShapeTypeTree = {
   },
 
   Model: {
-    InductiveModel: {
-      NumericModel: null,
-      SymbolicLearningModel: {
-        SelfSupervisedRuleMiningModel: {
-          AxiomMiningModel: null
-        },
-        UnsupervisedCommunityDetectionModel: null
-      }
-    },
     NeuralModel: {
       NeuralNetwork: {
         CNN: null,
@@ -121,17 +112,22 @@ export const shapeTypesTree: ShapeTypeTree = {
           GAT: null,
           SupervisedGraphNNModel: null
         }
+      }
+    },
+    LLM: {
+      GPT: {
+        GPT4oMini: null,
       },
-      LLM: null
+      Claude: null,
     },
     SemanticModel: {
       OWLOntology: null,
       RDFModel: null,
       RDFSModel: null,
-      RuleBasedModel: null,
+      SWRLRuleModel: null,
       SHACLShapesModel: null
     },
-    StatisticalModel: {
+    ClassicalMachineLearningModel: {
       RegressionModel: null,
       ClassificationModel: null,
       ClusteringModel: null,

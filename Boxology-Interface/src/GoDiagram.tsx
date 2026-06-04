@@ -224,8 +224,8 @@ const GoDiagram: React.FC<GoDiagramProps> = ({
         go.Panel,
         'Grid',
         { gridCellSize: new go.Size(20, 20) },
-        $(go.Shape, 'LineH', { stroke: '#eee' }),
-        $(go.Shape, 'LineV', { stroke: '#eee' })
+        $(go.Shape, 'LineH', { stroke: '#f5f5f5' }),
+        $(go.Shape, 'LineV', { stroke: '#f5f5f5' })
       ),
     });
 
@@ -241,21 +241,62 @@ const GoDiagram: React.FC<GoDiagramProps> = ({
     };
 
     // 🔧 ADD: Configure tools with custom cursors
-    diagram.toolManager.draggingTool.isGridSnapEnabled = false;
+    diagram.toolManager.draggingTool.isGridSnapEnabled = true;
+    // diagram.toolManager.draggingTool.dragsLink = true;
     diagram.toolManager.draggingTool.delay = 0;
+    diagram.toolManager.resizingTool.isGridSnapEnabled = true;
     
     // 🔧 ADD: Custom cursor for linking tool
     diagram.toolManager.linkingTool.isEnabled = true;
+    diagram.toolManager.linkingTool.portGravity = 20;
     // Removed invalid property: portTargetingTool.cursorHot
-    
     diagram.toolManager.relinkingTool.isEnabled = true;
+    diagram.toolManager.relinkingTool.portGravity = 20;
+    diagram.toolManager.relinkingTool.fromHandleArchetype = new go.Shape('Diamond', {
+      segmentIndex: 0,
+      cursor: 'pointer',
+      desiredSize: new go.Size(8, 8),
+      fill: 'tomato',
+      stroke: 'darkred'
+    });
+    diagram.toolManager.relinkingTool.toHandleArchetype = new go.Shape('Diamond', {
+      segmentIndex: -1,
+      cursor: 'pointer',
+      desiredSize: new go.Size(8, 8),
+      fill: 'darkred',
+      stroke: 'tomato'
+    });
+
+ function makePort(name: string, spot: go.Spot, output: boolean, input: boolean) {
+  return new go.Shape('Circle', {
+    fill: null,
+    stroke: null,
+    desiredSize: new go.Size(7, 7),
+    alignment: spot,
+    alignmentFocus: spot,
+    portId: name,
+    fromSpot: spot,
+    toSpot: spot,
+    fromLinkable: output,
+    toLinkable: input,
+    cursor: 'pointer'
+  });
+}
+
+function showSmallPorts(node: any, show: any) {
+  node.ports.each((port: go.Shape) => {
+    if (port.portId !== '') {
+      port.fill = show ? 'rgba(0,0,0,.3)' : null;
+    }
+  });
+}
 
     // UPDATED: Node template - shape as port with cursor differentiation
     diagram.nodeTemplate = $(
       go.Node,
       'Spot',
       {
-        locationSpot: go.Spot.Center,
+        locationSpot: go.Spot.TopLeft,
         selectable: true,
         movable: true,
         resizable: true,
@@ -271,8 +312,12 @@ const GoDiagram: React.FC<GoDiagramProps> = ({
         },
         // 🔧 ADD: Dynamic cursor based on mouse position
         mouseEnter: (e, obj) => {
-          const node = obj as go.Node;
-          node.cursor = 'move';  // Default to move
+          // const node = obj as go.Node;
+          // node.cursor = 'move';  // Default to move
+          showSmallPorts(obj, true);
+        },
+        mouseLeave: (e, obj) => {
+          showSmallPorts(obj, false);
         },
         mouseDragEnter: (e, obj) => {
           const node = obj as go.Node;
@@ -346,7 +391,11 @@ const GoDiagram: React.FC<GoDiagramProps> = ({
       ),
       
       // 🔧 REMOVED: All separate port lines (TOP_PORT, BOTTOM_PORT, LEFT_PORT, RIGHT_PORT)
-      
+      makePort('T', go.Spot.Top, true, true),
+      makePort('L', go.Spot.Left, true, true),
+      makePort('R', go.Spot.Right, true, true),
+      makePort('B', go.Spot.Bottom, true, true),
+
       // Label (centered) - UPDATED: Make editable
       $(
         go.TextBlock,
@@ -429,7 +478,6 @@ const GoDiagram: React.FC<GoDiagramProps> = ({
     );
 
     diagram.linkTemplate = $(
-      
       go.Link,
       // 🔧 CHANGED: Use Orthogonal instead of AvoidsNodes (much faster)
       {routing: go.Routing.AvoidsNodes,
@@ -437,8 +485,11 @@ const GoDiagram: React.FC<GoDiagramProps> = ({
           corner: 5,
           toShortLength: 4,
           reshapable: true,
-          resegmentable: true},
-      { routing: go.Link.Orthogonal, corner: 5, selectable: true },
+          resegmentable: true,
+          relinkableFrom: true,
+          relinkableTo: true,
+      },
+      // { routing: go.Link.Orthogonal, corner: 5, selectable: true }, // commented to retain AvoidNodes
       $(go.Shape, { strokeWidth: 2, stroke: "#555" }),
       $(go.Shape, { toArrow: "Triangle", fill: "#555", stroke: null })
     );
